@@ -1,104 +1,144 @@
-DMND Stratum V2 Client – Getting Started Guide
-========================================
+# DMND Stratum V2 Client – Getting Started Guide
 
-# 1. Introduction
----------------
+## 1. Introduction
 
-Through this guide we will setup DMND Stratum V2 client and connect to DMND pool. After completing
-this guide, you will have a fully functional Stratum V2 mining setup connected to DMND pool with
-full Job Declaration.
+---
 
-# 2. What You Need Before Starting
--------------------------------
+This guide walks you through setting up the DMND Stratum V2 Client and connecting to DMND pool.
+After completing it, you will have a fully functional Stratum V2 mining setup connected to DMND
+pool with full Job Declaration.
 
-To mine with DMND pool you must first obtain DMND token.  Please complete the registration form at
-https://onboarding.dmnd.work and await our confirmation email before proceeding.
+**How the components fit together:**
 
-# 3. Enable Job Declaration Support
--------------------------
+```
+Bitcoin Core  →  Template Provider  →  DMND Client  →  Your Miners
+(builds blocks)   (serves templates)   (manages work)   (hash)
+```
 
-To use Stratum V2 with Job Declaration, you must run Bitcoin Core along Stratum V2 Template
-Provider. Job declaration is one of the key features of Stratum V2 that allow miners to build their
-own blocks, improving decentralization, efficiency, and latency.
+## 2. What You Need Before Starting
 
+---
+
+To mine with DMND pool you must first obtain a DMND token. Please complete the registration form at
+<https://onboarding.dmnd.work> and await our confirmation email before proceeding.
+
+## 3. Enable Job Declaration Support
+
+---
+
+To use Stratum V2 with Job Declaration, you must run Bitcoin Core alongside the Stratum V2 Template
+Provider. Job Declaration is one of the key features of Stratum V2 that allows miners to build
+their own blocks, improving decentralization, efficiency, and latency.
 
 What you need:
-- Bitcoin Core(At least version 30) with IPC enabled.
-- Stratum V2 Template Provider, which connect to Bitcoin Core via IPC and provide templates to the
-  DMND Stratum V2 Client.
 
-#### 3.1 Run Bitcoin Core
-Follow instruction to download and install Bitcoin Core as describe in the official website:
+- Bitcoin Core (at least version 30) with IPC enabled.
+- Stratum V2 Template Provider, which connects to Bitcoin Core via IPC and provides templates to
+  the DMND Stratum V2 Client.
 
-https://bitcoincore.org/en/releases/30.2/
+### 3.1 Run Bitcoin Core
 
-Then make sure to start Bitcoin Core with IPC enabled.
+Follow the instructions to download and install Bitcoin Core as described on the official website:
 
-    bitcoin -m node -chain=main -ipcbind=unix
+<https://bitcoincore.org/en/releases/30.2/>
 
-Note that the `ipcbind=unix` is required and Stratum V2 will not work without it.
+Then start Bitcoin Core with IPC enabled:
 
-#### 3.2 Run Template Provider
-Download the Template Provider binary.
-https://github.com/stratum-mining/sv2-tp/releases/tag/v1.0.6
+```
+bitcoin -m node -chain=main -ipcbind=unix
+```
+
+Note that `-ipcbind=unix` is required. Stratum V2 will not work without it.
+
+### 3.2 Run Template Provider
+
+Download the Template Provider binary:
+
+<https://github.com/stratum-mining/sv2-tp/releases/tag/v1.0.6>
 
 Run the Template Provider:
 
-    sv2-tp -debug=sv2 -loglevel=sv2:trace
+```
+sv2-tp -debug=sv2 -loglevel=sv2:trace
+```
 
-If you have changed Bitcoin Core’s default datadir, you may need to specify the
-Unix socket path manually by adding the following option:
+If you changed Bitcoin Core's default datadir, you may need to specify the Unix socket path
+manually by adding:
 
-    -ipcconnect=unix:<path-to-bitcoin-dir>/node.sock
+```
+-ipcconnect=unix:<path-to-bitcoin-dir>/node.sock
+```
 
 The default Template Provider port is **8336**.
 
-# 4. Run DMND Client
------------------------------------
+## 4. Run DMND Client
 
-#### 4.1 Download DMND Stratum V2 Client
-You can download the latest release of DMND Stratum V2 Client from:
-https://github.com/dmnd-pool/dmnd-client/releases/tag/v0.2.9
+---
 
+### 4.1 Download DMND Stratum V2 Client
 
-Assuming that `dmnd-client-linux` is the executable you are using, run:
+Download the latest release for your platform from:
 
-    TOKEN=<DMND-token> cargo run -- -l info -d <avg-hashrate>T --tp-address="127.0.0.1:<port>"
+<https://github.com/dmnd-pool/dmnd-client/releases/latest>
+
+> **Supported platforms:** Linux (x86_64). macOS and Windows are not currently supported.
+
+### 4.2 Run the Client
+
+Make the binary executable and run it:
+
+```bash
+chmod +x dmnd-client-linux
+
+TOKEN=<DMND-token> ./dmnd-client-linux -l info -d <avg-hashrate>T --tp-address="127.0.0.1:<port>"
+```
 
 Where:
-- `<avg-hashrate>` = average hashrates of all your miners in TH/s. For example,
-if you have three machines of 100Th/s, 200Th/s and 300Th/s, then the average 
-hashrate is (100 + 200 + 300) / 3 = 200 TH/s.  Our dynamic difficulty 
-adjustment algorithm will take care of the rest.
-
-- `<port>` is the Template Provider listening port (default 8336).
 
 - `<DMND-token>` is the token you received via email from DMND pool during registration.
+- `<avg-hashrate>` is the average hashrate of all your miners in TH/s. For example, if you have
+  three machines at 100 TH/s, 200 TH/s, and 300 TH/s, the average is
+  (100 + 200 + 300) / 3 = 200 TH/s. The dynamic difficulty adjustment algorithm handles the rest.
+- `<port>` is the Template Provider listening port (default: **8336**).
 
-Example:
+**Example:**
 
-    TOKEN=abc123 cargo run -- -l info -d 200T --tp-address="127.0.0.1:8336"
+```bash
+TOKEN=abc123 ./dmnd-client-linux -l info -d 200T --tp-address="127.0.0.1:8336"
+```
 
-# 5. Connect Your Miner
------------------------------
+## 5. Connect Your Miners
 
-After you have Bitcoin Core, Stratum V2 Template Provider and DMND Stratum V2 Client running, you
-can point your miner to the DMND Stratum V2 Client.
+---
 
-Enter your DMND token in the password field and point your miners to the machine running the DMND Stratum V2 Client. The username field can be left empty or filled with anything you like. If not changed, the default port of the
-DMND Stratum V2 Client is **32767**. So you should obtain the IP address of the machine running the
-DMND Stratum V2 Client and point your miner to:
+Once Bitcoin Core, the Template Provider, and the DMND Client are all running, point your miners
+at the machine running the DMND Client.
 
-    stratum+tcp://<machine_running_dmnd_client_ip>:32767
+Use the following address (default port is **32767**):
 
+```
+stratum+tcp://<machine_running_dmnd_client_ip>:32767
+```
 
-# 6. Track Hashrate and Earnings
---------------------------------------
-You can track your hashrate and earnings on the DMND pool dashboard:
+Miner configuration:
 
-    https://dashboard.dmnd.work
+- **Host/URL:** IP address of the machine running the DMND Client, port `32767`
+- **Username:** can be left empty or set to anything
+- **Password:** your DMND token
 
-Login with the same credentials you used during registration.
+> **Firewall note:** If the DMND Client is running on a separate machine, make sure port `32767`
+> is open and reachable from your miners.
 
+## 6. Track Hashrate and Earnings
+
+---
+
+You can monitor your hashrate, shares, and earnings on the DMND pool dashboard:
+
+```
+https://dashboard.dmnd.work
+```
+
+Log in with the same credentials you used during registration.
 
 Happy Mining!
